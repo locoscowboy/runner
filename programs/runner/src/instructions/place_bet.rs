@@ -19,8 +19,8 @@ pub struct PlaceBet<'info> {
         seeds = [ESCROW_SEED, race.race_id.to_le_bytes().as_ref()],
         bump,
     )]
-    /// CHECK: Escrow PDA for holding bets
-    pub escrow: AccountInfo<'info>,
+    /// CHECK: Escrow PDA for holding bets (not initialized, just receives SOL)
+    pub escrow: UncheckedAccount<'info>,
     
     #[account(mut)]
     pub player: Signer<'info>,

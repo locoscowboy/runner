@@ -13,7 +13,7 @@ export const WAITING_DURATION_SECONDS = parseInt(
 );
 
 export const RESOLUTION_SLOT_OFFSET = parseInt(
-  process.env.RESOLUTION_SLOT_OFFSET || '20'
+  process.env.RESOLUTION_SLOT_OFFSET || '50'
 );
 
 export const RAKE_BPS = parseInt(process.env.RAKE_BPS || '150');

@@ -28,8 +28,8 @@ pub struct ResolveRace<'info> {
         seeds = [ESCROW_SEED, race.race_id.to_le_bytes().as_ref()],
         bump,
     )]
-    /// CHECK: Escrow PDA
-    pub escrow: AccountInfo<'info>,
+    /// CHECK: Escrow PDA holding race funds
+    pub escrow: UncheckedAccount<'info>,
     
     /// CHECK: SlotHashes sysvar
     #[account(address = solana_program::sysvar::slot_hashes::ID)]

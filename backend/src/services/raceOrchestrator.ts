@@ -1,5 +1,5 @@
 import { PublicKey, SystemProgram } from '@solana/web3.js';
-import BN from 'bn.js';
+import { BN } from '@coral-xyz/anchor';
 import { getProgram, getAuthorityKeypair, getFeeWalletPubkey, connection } from '../config/solana';
 import {
   BETTING_DURATION_SECONDS,
@@ -10,6 +10,7 @@ import {
 } from '../config/constants';
 import { SeedService } from './seedService';
 import { DatabaseService } from './databaseService';
+import { WinnerCalculation } from './winnerCalculation';
 import { logger } from '../utils/logger';
 
 export class RaceOrchestrator {
@@ -162,23 +163,42 @@ export class RaceOrchestrator {
         program.programId
       );
 
-      // Fetch race to get winner (we need to calculate it first, or let contract do it)
+      // Fetch race data from chain
       const race = await program.account.race.fetch(racePDA);
       
-      // For now, we pass the first player as winner account
-      // The contract will verify the actual winner
-      const winnerPubkey = race.players[0]?.pubkey || authority.publicKey;
+      if (race.players.length === 0) {
+        logger.warn(`Race ${raceId} has no players, skipping resolution`);
+        return;
+      }
 
-      // Reveal server seed
-      const serverSeed = Buffer.from(raceData.server_seed, 'hex');
-
-      logger.info(`Resolving race ${raceId}...`);
-
-      // SlotHashes sysvar
+      // Get SlotHashes sysvar data
       const SLOT_HASHES_SYSVAR = new PublicKey(
         'SysvarS1otHashes111111111111111111111111111'
       );
+      const slotHashesAccount = await connection.getAccountInfo(SLOT_HASHES_SYSVAR);
+      if (!slotHashesAccount) {
+        throw new Error('Could not fetch SlotHashes sysvar');
+      }
 
+      // Get slot hash for resolution slot
+      const slotHash = await WinnerCalculation.getSlotHashFromSysvar(
+        slotHashesAccount.data,
+        raceData.resolution_slot
+      );
+
+      // Calculate winner using the same algorithm as the contract
+      const serverSeed = Buffer.from(raceData.server_seed, 'hex');
+      const winnerPubkey = WinnerCalculation.calculateWinner({
+        players: race.players,
+        serverSeed,
+        slotHash,
+        raceId,
+        totalPot: race.totalPot,
+      });
+
+      logger.info(`Calculated winner: ${winnerPubkey.toBase58()}`);
+
+      // Call smart contract to resolve
       const tx = await program.methods
         .resolveRace(Array.from(serverSeed))
         .accounts({
@@ -194,8 +214,21 @@ export class RaceOrchestrator {
         .signers([authority])
         .rpc();
 
-      logger.info(`Race ${raceId} resolved! TX: ${tx}`);
-      logger.info(`✅ Winner determination and payout completed`);
+      logger.info(`Race ${raceId} resolved on-chain! TX: ${tx}`);
+
+      // Fetch updated race data to get prize and rake
+      const resolvedRace = await program.account.race.fetch(racePDA);
+
+      // Update database with resolution data
+      await DatabaseService.resolveRace({
+        raceId,
+        winnerPubkey: winnerPubkey.toBase58(),
+        prize: resolvedRace.prize.toNumber(),
+        rake: resolvedRace.totalPot.toNumber() - resolvedRace.prize.toNumber(),
+        randomSeed: Buffer.from(resolvedRace.randomSeed).toString('hex'),
+      });
+
+      logger.info(`✅ Race ${raceId} fully resolved - Winner: ${winnerPubkey.toBase58()}`);
     } catch (error) {
       logger.error(`Error resolving race ${raceId}:`, error);
       throw error;
