@@ -1,5 +1,3 @@
-use anchor_lang::prelude::*;
-
 /// Seed for global state PDA
 pub const GLOBAL_STATE_SEED: &[u8] = b"global_state";
 

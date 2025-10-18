@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::keccak;
+use sha3::{Digest, Keccak256};
 use crate::constants::*;
 use crate::errors::*;
 use crate::state::*;
@@ -32,7 +32,7 @@ pub struct ResolveRace<'info> {
     pub escrow: UncheckedAccount<'info>,
     
     /// CHECK: SlotHashes sysvar
-    #[account(address = solana_program::sysvar::slot_hashes::ID)]
+    #[account(address = anchor_lang::solana_program::sysvar::slot_hashes::ID)]
     pub slot_hashes: AccountInfo<'info>,
     
     #[account(mut)]
@@ -69,9 +69,11 @@ pub fn handler(ctx: Context<ResolveRace>, server_seed: Vec<u8>) -> Result<()> {
     );
     
     // 1. Verify server seed matches committed hash
-    let computed_hash = keccak::hash(&server_seed);
+    let mut hasher = Keccak256::new();
+    hasher.update(&server_seed);
+    let computed_hash: [u8; 32] = hasher.finalize().into();
     require!(
-        computed_hash.0 == race.server_seed_hash,
+        computed_hash == race.server_seed_hash,
         RunnerError::InvalidServerSeed
     );
     
@@ -85,9 +87,11 @@ pub fn handler(ctx: Context<ResolveRace>, server_seed: Vec<u8>) -> Result<()> {
     entropy_data.extend_from_slice(&race.race_id.to_le_bytes());
     
     // 4. Generate final random value
-    let final_hash = keccak::hash(&entropy_data);
+    let mut hasher = Keccak256::new();
+    hasher.update(&entropy_data);
+    let final_hash: [u8; 32] = hasher.finalize().into();
     let random_value = u64::from_le_bytes(
-        final_hash.0[0..8].try_into().unwrap()
+        final_hash[0..8].try_into().unwrap()
     );
     
     // 5. Select winner using weighted random
@@ -137,7 +141,7 @@ pub fn handler(ctx: Context<ResolveRace>, server_seed: Vec<u8>) -> Result<()> {
     race.state = RaceState::Finished;
     race.winner = Some(winner_key);
     race.prize = prize;
-    race.random_seed = final_hash.0;
+    race.random_seed = final_hash;
     race.resolved_at = clock.unix_timestamp;
     
     // 10. Update global stats
@@ -149,7 +153,7 @@ pub fn handler(ctx: Context<ResolveRace>, server_seed: Vec<u8>) -> Result<()> {
         winner: winner_key,
         prize,
         rake,
-        random_seed: final_hash.0,
+        random_seed: final_hash,
     });
     
     msg!(

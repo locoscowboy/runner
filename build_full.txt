@@ -1,0 +1,8 @@
+error: unexpected argument '--verbose' found
+
+  tip: a similar argument exists: '--verifiable'
+  tip: to pass '--verbose' as a value, use '-- --verbose'
+
+Usage: anchor-0.32.1 build <--skip-lint|--no-idl|--idl <IDL>|--idl-ts <IDL_TS>|--verifiable|--program-name <PROGRAM_NAME>|--solana-version <SOLANA_VERSION>|--docker-image <DOCKER_IMAGE>|--bootstrap <BOOTSTRAP>|--env <ENV>|CARGO_ARGS|--no-docs|--arch <ARCH>>
+
+For more information, try '--help'.
