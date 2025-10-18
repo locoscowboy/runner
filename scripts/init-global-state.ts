@@ -1,18 +1,11 @@
 import { Connection, Keypair, PublicKey, SystemProgram } from '@solana/web3.js';
 import { AnchorProvider, Program, Wallet } from '@coral-xyz/anchor';
-import * as fs from 'fs';
 import * as path from 'path';
 import dotenv from 'dotenv';
+import type { Runner } from '../backend/src/types/runner';
+import IDL from '../backend/src/idl/runner.json';
 
 dotenv.config({ path: path.join(__dirname, '../backend/.env') });
-
-// Load IDL
-const IDL = JSON.parse(
-  fs.readFileSync(
-    path.join(__dirname, '../backend/src/idl/runner.json'),
-    'utf-8'
-  )
-);
 
 const PROGRAM_ID = new PublicKey(process.env.PROGRAM_ID!);
 const RPC_URL = process.env.SOLANA_RPC_URL!;
@@ -33,7 +26,7 @@ async function main() {
     commitment: 'confirmed',
   });
 
-  const program = new Program(IDL, PROGRAM_ID, provider);
+  const program = new Program<Runner>(IDL as Runner, provider);
 
   // Fee wallet (same as authority for now)
   const feeWallet = new PublicKey(process.env.FEE_WALLET_PUBKEY!);

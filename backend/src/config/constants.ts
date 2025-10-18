@@ -1,7 +1,11 @@
 import { PublicKey } from '@solana/web3.js';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 export const PROGRAM_ID = new PublicKey(
-  process.env.PROGRAM_ID || 'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS'
+  process.env.PROGRAM_ID || '5DZS318TbttrDoKdVLeCE4dMcUjMjw9fkvUV2u1vKtRe'
 );
 
 export const BETTING_DURATION_SECONDS = parseInt(

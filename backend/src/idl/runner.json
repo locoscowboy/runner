@@ -1,13 +1,897 @@
 {
-  "version": "0.1.0",
-  "name": "runner",
-  "instructions": [],
-  "accounts": [],
-  "types": [],
-  "events": [],
-  "errors": [],
+  "address": "5DZS318TbttrDoKdVLeCE4dMcUjMjw9fkvUV2u1vKtRe",
   "metadata": {
-    "address": "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
-  }
+    "name": "runner",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Runner - Web3 Jackpot Game"
+  },
+  "instructions": [
+    {
+      "name": "end_betting",
+      "docs": [
+        "End the betting phase (called by authority)"
+      ],
+      "discriminator": [
+        115,
+        142,
+        179,
+        48,
+        13,
+        219,
+        11,
+        82
+      ],
+      "accounts": [
+        {
+          "name": "global_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "race",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  97,
+                  99,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "race.race_id",
+                "account": "Race"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "global_state"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_global_state",
+      "docs": [
+        "Initialize the global state (one-time setup)"
+      ],
+      "discriminator": [
+        232,
+        254,
+        209,
+        244,
+        123,
+        89,
+        154,
+        207
+      ],
+      "accounts": [
+        {
+          "name": "global_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "fee_wallet"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "rake_bps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "initialize_race",
+      "docs": [
+        "Initialize a new race"
+      ],
+      "discriminator": [
+        12,
+        16,
+        142,
+        69,
+        46,
+        238,
+        139,
+        31
+      ],
+      "accounts": [
+        {
+          "name": "global_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "race",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  97,
+                  99,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "global_state.current_race_id",
+                "account": "GlobalState"
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "global_state"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "server_seed_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "resolution_slot",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "place_bet",
+      "docs": [
+        "Place a bet on the current race"
+      ],
+      "discriminator": [
+        222,
+        62,
+        67,
+        220,
+        63,
+        166,
+        126,
+        33
+      ],
+      "accounts": [
+        {
+          "name": "race",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  97,
+                  99,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "race.race_id",
+                "account": "Race"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "race.race_id",
+                "account": "Race"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "resolve_race",
+      "docs": [
+        "Resolve the race using slot hash + server seed"
+      ],
+      "discriminator": [
+        181,
+        252,
+        7,
+        209,
+        242,
+        100,
+        95,
+        172
+      ],
+      "accounts": [
+        {
+          "name": "global_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "race",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  97,
+                  99,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "race.race_id",
+                "account": "Race"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "race.race_id",
+                "account": "Race"
+              }
+            ]
+          }
+        },
+        {
+          "name": "slot_hashes",
+          "address": "SysvarS1otHashes111111111111111111111111111"
+        },
+        {
+          "name": "winner",
+          "writable": true
+        },
+        {
+          "name": "fee_wallet",
+          "writable": true,
+          "relations": [
+            "global_state"
+          ]
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "global_state"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "server_seed",
+          "type": "bytes"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "GlobalState",
+      "discriminator": [
+        163,
+        46,
+        74,
+        168,
+        216,
+        123,
+        133,
+        98
+      ]
+    },
+    {
+      "name": "Race",
+      "discriminator": [
+        114,
+        93,
+        186,
+        119,
+        99,
+        123,
+        162,
+        192
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "BetPlaced",
+      "discriminator": [
+        88,
+        88,
+        145,
+        226,
+        126,
+        206,
+        32,
+        0
+      ]
+    },
+    {
+      "name": "BettingEnded",
+      "discriminator": [
+        67,
+        92,
+        219,
+        184,
+        51,
+        153,
+        184,
+        211
+      ]
+    },
+    {
+      "name": "RaceInitialized",
+      "discriminator": [
+        149,
+        48,
+        200,
+        188,
+        243,
+        189,
+        230,
+        136
+      ]
+    },
+    {
+      "name": "RaceResolved",
+      "discriminator": [
+        45,
+        151,
+        108,
+        227,
+        64,
+        209,
+        32,
+        144
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidRaceState",
+      "msg": "The race is not in the correct state for this operation"
+    },
+    {
+      "code": 6001,
+      "name": "BettingNotEnded",
+      "msg": "Betting deadline has not been reached yet"
+    },
+    {
+      "code": 6002,
+      "name": "BettingEnded",
+      "msg": "Betting deadline has already passed"
+    },
+    {
+      "code": 6003,
+      "name": "BetTooLow",
+      "msg": "Bet amount is below the minimum"
+    },
+    {
+      "code": 6004,
+      "name": "BetTooHigh",
+      "msg": "Bet amount exceeds the maximum"
+    },
+    {
+      "code": 6005,
+      "name": "MaxPlayersReached",
+      "msg": "Maximum number of players reached"
+    },
+    {
+      "code": 6006,
+      "name": "ResolutionSlotNotReached",
+      "msg": "Resolution slot has not been reached yet"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidServerSeed",
+      "msg": "Server seed does not match the committed hash"
+    },
+    {
+      "code": 6008,
+      "name": "SlotHashNotFound",
+      "msg": "Slot hash not found in SlotHashes sysvar"
+    },
+    {
+      "code": 6009,
+      "name": "NoPlayers",
+      "msg": "No players in the race"
+    },
+    {
+      "code": 6010,
+      "name": "WinnerNotFound",
+      "msg": "Winner not found (should never happen)"
+    },
+    {
+      "code": 6011,
+      "name": "ArithmeticOverflow",
+      "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6012,
+      "name": "InvalidAuthority",
+      "msg": "Invalid authority"
+    }
+  ],
+  "types": [
+    {
+      "name": "BetPlaced",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "race_id",
+            "type": "u64"
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "total_pot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BettingEnded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "race_id",
+            "type": "u64"
+          },
+          {
+            "name": "total_pot",
+            "type": "u64"
+          },
+          {
+            "name": "players_count",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GlobalState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "docs": [
+              "Authority that can manage races"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_wallet",
+            "docs": [
+              "Wallet that receives rake fees"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "rake_bps",
+            "docs": [
+              "Rake percentage in basis points (150 = 1.5%)"
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "current_race_id",
+            "docs": [
+              "Current race ID counter"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_races",
+            "docs": [
+              "Total number of races completed"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "Bump seed for PDA"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Player",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pubkey",
+            "type": "pubkey"
+          },
+          {
+            "name": "bet_amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Race",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "race_id",
+            "docs": [
+              "Unique race identifier"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "state",
+            "docs": [
+              "Current state of the race"
+            ],
+            "type": {
+              "defined": {
+                "name": "RaceState"
+              }
+            }
+          },
+          {
+            "name": "server_seed_hash",
+            "docs": [
+              "Hash of the server seed (committed before betting ends)"
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "resolution_slot",
+            "docs": [
+              "Solana slot number for resolution"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "deadline",
+            "docs": [
+              "Betting deadline timestamp"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "total_pot",
+            "docs": [
+              "Total pot in lamports"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "players",
+            "docs": [
+              "List of players and their bets"
+            ],
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Player"
+                }
+              }
+            }
+          },
+          {
+            "name": "winner",
+            "docs": [
+              "Winner's public key (after resolution)"
+            ],
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "prize",
+            "docs": [
+              "Prize amount paid to winner"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "random_seed",
+            "docs": [
+              "Final random seed (for verification)"
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "created_at",
+            "docs": [
+              "Creation timestamp"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "resolved_at",
+            "docs": [
+              "Resolution timestamp"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "Bump seed for PDA"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RaceInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "race_id",
+            "type": "u64"
+          },
+          {
+            "name": "server_seed_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "resolution_slot",
+            "type": "u64"
+          },
+          {
+            "name": "deadline",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RaceResolved",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "race_id",
+            "type": "u64"
+          },
+          {
+            "name": "winner",
+            "type": "pubkey"
+          },
+          {
+            "name": "prize",
+            "type": "u64"
+          },
+          {
+            "name": "rake",
+            "type": "u64"
+          },
+          {
+            "name": "random_seed",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "RaceState",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Betting"
+          },
+          {
+            "name": "Running"
+          },
+          {
+            "name": "Finished"
+          }
+        ]
+      }
+    }
+  ]
 }
-

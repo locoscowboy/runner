@@ -1,8 +1,12 @@
 import { Connection, Keypair, PublicKey } from '@solana/web3.js';
 import { AnchorProvider, Program, Wallet } from '@coral-xyz/anchor';
+import dotenv from 'dotenv';
 import { Runner } from '../types/runner';
 import IDL from '../idl/runner.json';
 import { PROGRAM_ID } from './constants';
+
+// Load environment variables
+dotenv.config();
 
 // Initialize connection
 export const connection = new Connection(
@@ -42,6 +46,6 @@ export function getProgram(): Program<Runner> {
     commitment: 'confirmed',
   });
   
-  return new Program(IDL as Runner, PROGRAM_ID, provider);
+  return new Program<Runner>(IDL as Runner, provider);
 }
 
